@@ -5,16 +5,29 @@ using UnityEngine;
 public class MOVEMENT : MonoBehaviour
 {
     public float acceleration = 10F;
-    public float jumpForce = 7F;
+    public float jumpForce = 9F;
 
     public Transform groundCheck;
     public float groundCheckRadius = 0.1F;
     public float maxSlopeAngle = 45F;
 
+    public COOLDOWN coyoteTime;
+    public COOLDOWN bufferJump;
+
     public LayerMask groundLayerMask;
 
-    private bool _isGrounded = false;
-    private bool _isJumping = false;
+    public bool IsJumping
+    {
+        get { return _isJumping; }
+    }
+    public bool IsGrounded
+    {
+        get { return _isGrounded; }
+    }
+
+    protected bool _isGrounded = false;
+    protected bool _isJumping = false;
+    protected bool _canJump = true;
 
     protected Vector2 _inputDirection;
     protected Rigidbody2D _rigidbody2D;
@@ -37,17 +50,9 @@ public class MOVEMENT : MonoBehaviour
         HandleMovement();
     }
 
-    void HandleInput()
-    {
-        _inputDirection = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+    protected virtual void HandleInput() { }
 
-        if (Input.GetButton("Jump") == true)
-            _isJumping = true;
-        else
-            _isJumping = false;
-    }
-
-    void HandleMovement()
+    protected virtual void HandleMovement()
     {
         Vector3 targetVelocity = Vector3.zero;
 
@@ -59,16 +64,49 @@ public class MOVEMENT : MonoBehaviour
         _rigidbody2D.velocity = targetVelocity;
     }
 
-    void DoJump()
+    protected virtual void DoJump()
     {
+        DoBufferJump();
+        
+        if (!_canJump)
+            return;
+
+        if (coyoteTime.CurrentProgress == COOLDOWN.Progress.Finished)
+            return;
+
+        _canJump = false;
+        _isJumping = true;
+        
         _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, jumpForce);
+
+        coyoteTime.StopCooldown();
     }
 
-    void CheckGround()
+    protected virtual void CheckGround()
     {
         _isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask);
 
-        if (_isGrounded == true)
-            DoJump();
+        if (_rigidbody2D.velocity.y <= 0)
+            _isJumping = false;
+
+
+        if (_isGrounded && !_isJumping)
+        {
+            _canJump = true;
+
+            if (coyoteTime.CurrentProgress != COOLDOWN.Progress.Ready)
+                coyoteTime.StopCooldown();
+
+            if (bufferJump.CurrentProgress is COOLDOWN.Progress.Started or COOLDOWN.Progress.InProgress)
+                DoJump();
+        }
+
+        if (!_isGrounded && !_isJumping && coyoteTime.CurrentProgress == COOLDOWN.Progress.Ready)
+            coyoteTime.StartCooldown();
+    }
+
+    protected void DoBufferJump()
+    {
+        bufferJump.StartCooldown();
     }
 }
