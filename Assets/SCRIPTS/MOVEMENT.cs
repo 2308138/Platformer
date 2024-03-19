@@ -16,17 +16,28 @@ public class MOVEMENT : MonoBehaviour
 
     public LayerMask groundLayerMask;
 
-    public bool IsJumping
-    {
-        get { return _isJumping; }
-    }
     public bool IsGrounded
     {
         get { return _isGrounded; }
     }
+    public bool IsJumping
+    {
+        get { return _isJumping; }
+    }
+    public bool IsRunning
+    {
+        get { return _isRunning; }
+    }
+
+    public bool IsFalling
+    {
+        get { return _isFalling; }
+    }
 
     protected bool _isGrounded = false;
+    protected bool _isRunning = false;
     protected bool _isJumping = false;
+    protected bool _isFalling = false;
     protected bool _canJump = true;
 
     protected Vector2 _inputDirection;
@@ -62,6 +73,11 @@ public class MOVEMENT : MonoBehaviour
             targetVelocity = new Vector2(_inputDirection.x * (acceleration), _rigidbody2D.velocity.y);
 
         _rigidbody2D.velocity = targetVelocity;
+
+        if (targetVelocity.x == 0)
+            _isRunning = false;
+        else
+            _isRunning = true;
     }
 
     protected virtual void DoJump()
@@ -76,6 +92,7 @@ public class MOVEMENT : MonoBehaviour
 
         _canJump = false;
         _isJumping = true;
+        _isFalling = false;
         
         _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, jumpForce);
 
@@ -87,12 +104,15 @@ public class MOVEMENT : MonoBehaviour
         _isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayerMask);
 
         if (_rigidbody2D.velocity.y <= 0)
+        {
             _isJumping = false;
-
+            _isFalling = true;
+        }
 
         if (_isGrounded && !_isJumping)
         {
             _canJump = true;
+            _isFalling = false;
 
             if (coyoteTime.CurrentProgress != COOLDOWN.Progress.Ready)
                 coyoteTime.StopCooldown();
