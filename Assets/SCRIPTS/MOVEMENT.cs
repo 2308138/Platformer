@@ -34,6 +34,8 @@ public class MOVEMENT : MonoBehaviour
         get { return _isFalling; }
     }
 
+    public bool flipAnim = false;
+
     protected bool _isGrounded = false;
     protected bool _isRunning = false;
     protected bool _isJumping = false;
@@ -59,6 +61,7 @@ public class MOVEMENT : MonoBehaviour
     {
         CheckGround();
         HandleMovement();
+        Flip();
     }
 
     protected virtual void HandleInput() { }
@@ -128,5 +131,15 @@ public class MOVEMENT : MonoBehaviour
     protected void DoBufferJump()
     {
         bufferJump.StartCooldown();
+    }
+
+    protected virtual void Flip()
+    {
+        if (_inputDirection.x == 0)
+            return;
+        if (_inputDirection.x > 0)
+            flipAnim = false;
+        else if (_inputDirection.x < 0)
+            flipAnim = true;
     }
 }

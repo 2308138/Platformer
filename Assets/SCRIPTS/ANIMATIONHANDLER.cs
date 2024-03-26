@@ -16,7 +16,7 @@ public class ANIMATIONHANDLER : MonoBehaviour
         _movement = transform.parent.GetComponent<MOVEMENT>();
 
         _initialScale = transform.localScale;
-        _flipScale = new Vector3(_initialScale.x, _initialScale.y, _initialScale.z);
+        _flipScale = new Vector3(-_initialScale.x, _initialScale.y, _initialScale.z);
     }
 
     void Update()
@@ -29,6 +29,8 @@ public class ANIMATIONHANDLER : MonoBehaviour
     {
         if (_movement == null)
             return;
+
+        transform.localScale = _movement.flipAnim ? _flipScale : _initialScale;
     }
 
     void UpdateAnimator()
