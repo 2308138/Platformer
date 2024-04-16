@@ -8,7 +8,7 @@ public class PLAYERMOVEMENT : MOVEMENT
     {
         _inputDirection = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
-        if (Input.GetButton("Jump") == true)
+        if (Input.GetKey(KeyCode.Space) == true)
         {
             DoJump();
             _isJumping = true;
